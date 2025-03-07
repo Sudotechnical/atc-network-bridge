@@ -1,0 +1,43 @@
+{
+  "name": "atc-network-bridge",
+  "version": "0.9.0-beta.1",
+  "description": "Bridge between VATSIM and BeyondATC networks with GPS-based handoffs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "start:prod": "NODE_ENV=production node src/index.js",
+    "build": "pkg . --targets node16-win-x64 --output dist/atc-network-bridge.exe --public"
+  },
+  "bin": "src/index.js",
+  "pkg": {
+    "assets": [
+      ".env*",
+      "node_modules/**/*",
+      "src/**/*"
+    ],
+    "scripts": [
+      "src/**/*.js"
+    ],
+    "outputPath": "dist",
+    "targets": ["node16-win-x64"],
+    "options": {
+      "public": true,
+      "compress": true
+    }
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "ws": "^8.13.0",
+    "node-fetch": "^2.6.9"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.21",
+    "pkg": "^5.8.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
