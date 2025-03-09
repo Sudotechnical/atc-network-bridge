@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ATC Network Bridge Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .output-container {
+            margin-top: 20px;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .output-window {
+            background: #1e1e1e;
+            color: #fff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .output-window .line {
+            margin: 2px 0;
+            white-space: pre-wrap;
+        }
+        .output-window .info {
+            color: #4CAF50;
+        }
+        .output-window .error {
+            color: #f44336;
+        }
+        .output-window .warning {
+            color: #ff9800;
+        }
+        .clear-output {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .clear-output:hover {
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+        .status-dot.active {
+            background: #4CAF50;
+        }
+        .reconnect-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        .reconnect-btn:hover {
+            background: #1976D2;
+        }
+        .reconnect-btn:active {
+            transform: scale(0.98);
+        }
+        .reconnect-btn.loading {
+            background: #90CAF9;
+            cursor: wait;
+        }
+        .reconnect-btn .icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .reconnect-btn.loading .icon {
+            opacity: 1;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .settings-group {
+            margin-bottom: 20px;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+        }
+        .ptt-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ptt-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fff;
+            cursor: default;
+            user-select: none;
+        }
+        .ptt-input.scanning {
+            background: #f5f5f5;
+            border-color: #4a90e2;
+            animation: pulse 1.5s infinite;
+        }
+        .scan-button {
+            padding: 8px 16px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .scan-button:hover {
+            background: #357abd;
+        }
+        .scan-button.scanning {
+            background: #f44336;
+        }
+        .scan-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        @keyframes pulse {
+            0% { border-color: #4a90e2; }
+            50% { border-color: #357abd; }
+            100% { border-color: #4a90e2; }
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .notification {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        .notification.success {
+            background: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .notification.error {
+            background: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #fff;
+            font-family: 'Consolas', monospace;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .console .error {
+            color: #ff6b6b;
+        }
+        .console .success {
+            color: #69db7c;
+        }
+        .console .info {
+            color: #4dabf7;
+        }
+        .setting-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ATC Network Bridge Settings</h1>
+        
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="networkDot"></div>
+                <span id="networkStatus">Current Network: Loading...</span>
+            </div>
+            <div class="status-actions">
+                <div class="status-indicator">
+                    <span id="aircraftStatus">Aircraft: Loading...</span>
+                </div>
+                <button id="reconnectBtn" class="reconnect-btn" onclick="reconnect()">
+                    <span class="icon"></span>
+                    Reconnect
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <div class="setting-item">
+                <label for="tailNumber">Aircraft Tail Number</label>
+                <input type="text" id="tailNumber" placeholder="N9632J">
+            </div>
+
+            <div class="setting-item">
+                <label for="pttKey">Push-to-Talk Input</label>
+                <div class="ptt-container">
+                    <input type="text" id="pttKey" class="ptt-input" readonly 
+                           placeholder="Press 'Scan' and press any key...">
+                    <button id="scanButton" class="scan-button" onclick="startPttScan()">
+                        Scan
+                    </button>
+                </div>
+                <div class="setting-help">
+                    Press any keyboard key to set as PTT. The key will automatically work with the active network.
+                </div>
+            </div>
+
+            <button onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div id="notification" class="notification"></div>
+        
+        <div class="output-container">
+            <div class="output-header">
+                <span>Bridge Output</span>
+                <button class="clear-output" onclick="clearOutput()">Clear Output</button>
+            </div>
+            <div id="outputWindow" class="output-window"></div>
+        </div>
+        
+        <div class="console" id="console"></div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        let outputLines = [];
+        const maxOutputLines = 1000;
+        const consoleOutput = document.getElementById('console');
+        let isAutoScrollEnabled = true;
+        let isScanning = false;
+
+        // Auto-scroll console
+        consoleOutput.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = consoleOutput;
+            isAutoScrollEnabled = scrollTop + clientHeight >= scrollHeight - 10;
+        });
+
+        function appendToConsole(text, type = '') {
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = text;
+            consoleOutput.appendChild(line);
+
+            // Auto-scroll if enabled
+            if (isAutoScrollEnabled) {
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+
+            // Limit console lines
+            while (consoleOutput.childNodes.length > 1000) {
+                consoleOutput.removeChild(consoleOutput.firstChild);
+            }
+        }
+
+        // Load current settings
+        ipcRenderer.send('get-env');
+        
+        ipcRenderer.on('env-loaded', (event, data) => {
+            if (data.success) {
+                const env = data.env;
+                document.getElementById('tailNumber').value = env.CURRENT_AIRCRAFT_CALLSIGN || '';
+                document.getElementById('pttKey').value = env.PTT_KEY || '';
+            } else {
+                showNotification('Error loading settings: ' + data.error, false);
+            }
+        });
+
+        // Handle bridge output
+        ipcRenderer.on('bridge-output', (event, line) => {
+            const outputWindow = document.getElementById('outputWindow');
+            
+            // Add new line with appropriate class
+            let className = 'line';
+            if (line.includes('Error') || line.includes('error')) {
+                className += ' error';
+            } else if (line.includes('Warning') || line.includes('warning')) {
+                className += ' warning';
+            } else if (line.includes('Connected') || line.includes('Success')) {
+                className += ' info';
+            }
+            
+            outputLines.push(`<div class="${className}">${line}</div>`);
+            
+            // Trim old lines if exceeding max
+            if (outputLines.length > maxOutputLines) {
+                outputLines = outputLines.slice(-maxOutputLines);
+            }
+            
+            // Update display
+            outputWindow.innerHTML = outputLines.join('');
+            outputWindow.scrollTop = outputWindow.scrollHeight;
+
+            // Update status based on output
+            if (line.includes('Current Network:')) {
+                const network = line.includes('VATSIM') ? 'VATSIM' : 'BeyondATC';
+                updateNetworkStatus(network);
+            }
+            
+            // Color code important messages
+            if (line.includes('Connected to') || line.includes('Switched to')) {
+                appendToConsole(line, 'success');
+            } else if (line.includes('Error') || line.includes('Failed')) {
+                appendToConsole(line, 'error');
+            } else if (line.includes('Status:') || line.includes('Aircraft:')) {
+                appendToConsole(line, 'info');
+            } else {
+                appendToConsole(line);
+            }
+        });
+
+        ipcRenderer.on('bridge-error', (event, data) => {
+            appendToConsole(data, 'error');
+        });
+        
+        function clearOutput() {
+            outputLines = [];
+            document.getElementById('outputWindow').innerHTML = '';
+        }
+
+        // Reconnect functionality
+        function reconnect() {
+            const btn = document.getElementById('reconnectBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            
+            // Clear output before restart
+            clearOutput();
+            
+            // Clear console
+            consoleOutput.innerHTML = '';
+            appendToConsole('Restarting bridge process...', 'info');
+            
+            // Request bridge restart
+            ipcRenderer.send('reconnect');
+        }
+
+        ipcRenderer.on('reconnect-status', (event, data) => {
+            const btn = document.getElementById('reconnectBtn');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            
+            appendToConsole(data.message, data.success ? 'success' : 'error');
+            showNotification(data.message, data.success);
+        });
+
+        // Update network status
+        function updateNetworkStatus(network) {
+            const dot = document.getElementById('networkDot');
+            const status = document.getElementById('networkStatus');
+            
+            dot.className = 'status-dot' + (network ? ' active' : '');
+            status.textContent = 'Current Network: ' + (network || 'Disconnected');
+        }
+
+        // PTT Scanning
+        function startPttScan() {
+            const scanButton = document.getElementById('scanButton');
+            const pttInput = document.getElementById('pttKey');
+            
+            if (isScanning) {
+                stopPttScan();
+                return;
+            }
+            
+            isScanning = true;
+            scanButton.textContent = 'Cancel';
+            scanButton.classList.add('scanning');
+            pttInput.classList.add('scanning');
+            pttInput.value = 'Press any key...';
+            pttInput.placeholder = 'Listening for input...';
+            
+            // Start scanning
+            ipcRenderer.send('start-ptt-scan');
+        }
+
+        function stopPttScan() {
+            const scanButton = document.getElementById('scanButton');
+            const pttInput = document.getElementById('pttKey');
+            
+            isScanning = false;
+            scanButton.textContent = 'Scan';
+            scanButton.classList.remove('scanning');
+            pttInput.classList.remove('scanning');
+            pttInput.placeholder = 'Press \'Scan\' and press any key...';
+            
+            ipcRenderer.send('stop-ptt-scan');
+        }
+
+        // Handle PTT input detection
+        ipcRenderer.on('ptt-input-detected', (event, data) => {
+            const pttInput = document.getElementById('pttKey');
+            pttInput.value = data.name;
+            stopPttScan();
+            
+            // Auto-save the new PTT setting
+            saveSettings();
+            showNotification(`PTT key set to: ${data.name}`, true);
+        });
+
+        // Handle scan errors
+        ipcRenderer.on('scan-error', (event, data) => {
+            showNotification(data.message, false);
+            stopPttScan();
+        });
+
+        // Save settings
+        async function saveSettings() {
+            const settings = {
+                CURRENT_AIRCRAFT_CALLSIGN: document.getElementById('tailNumber').value,
+                PTT_KEY: document.getElementById('pttKey').value
+            };
+
+            ipcRenderer.send('update-env', settings);
+        }
+
+        ipcRenderer.on('env-updated', (event, data) => {
+            showNotification(
+                data.success ? 'Settings saved successfully! Restarting bridge...' : 'Error saving settings: ' + data.error,
+                data.success
+            );
+
+            if (data.success) {
+                // Auto-restart after settings change
+                setTimeout(reconnect, 1000);
+            }
+        });
+
+        function showNotification(message, success) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + (success ? 'success' : 'error');
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Listen for network status updates
+        ipcRenderer.on('network-status', (event, data) => {
+            updateNetworkStatus(data.network);
+            document.getElementById('aircraftStatus').textContent = 
+                'Aircraft: ' + (data.aircraft || 'N/A');
+        });
+
+        // Initial status update
+        updateNetworkStatus('Loading...');
+    </script>
+</body>
+</html>

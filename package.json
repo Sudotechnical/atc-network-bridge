@@ -1,43 +1,54 @@
 {
   "name": "atc-network-bridge",
   "version": "0.9.0-beta.1",
-  "description": "Bridge between VATSIM and BeyondATC networks with GPS-based handoffs",
-  "main": "src/index.js",
+  "description": "Bridge between BeyondATC and VATSIM networks",
+  "author": {
+    "name": "Travis",
+    "email": "travis@example.com"
+  },
+  "main": "src/main.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest",
-    "start:prod": "NODE_ENV=production node src/index.js",
-    "build": "pkg . --targets node16-win-x64 --output dist/atc-network-bridge.exe --public"
-  },
-  "bin": "src/index.js",
-  "pkg": {
-    "assets": [
-      ".env*",
-      "node_modules/**/*",
-      "src/**/*"
-    ],
-    "scripts": [
-      "src/**/*.js"
-    ],
-    "outputPath": "dist",
-    "targets": ["node16-win-x64"],
-    "options": {
-      "public": true,
-      "compress": true
-    }
+    "dev": "concurrently \"npm run start\" \"npm run gui\"",
+    "gui": "electron .",
+    "clean": "if exist dist rd /s /q dist",
+    "postinstall": "electron-rebuild",
+    "build": "npm run clean && npm run postinstall && electron-builder --win dir --x64 && electron-builder --win portable --x64"
   },
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "ws": "^8.13.0",
-    "node-fetch": "^2.6.9"
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.1",
+    "node-fetch": "^2.7.0",
+    "node-global-key-listener": "^0.1.1",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
-    "jest": "^29.5.0",
-    "nodemon": "^2.0.21",
-    "pkg": "^5.8.1"
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1",
+    "electron-rebuild": "^3.2.9"
   },
-  "engines": {
-    "node": ">=16.0.0"
+  "build": {
+    "appId": "com.atcnetworkbridge.app",
+    "productName": "ATC Network Bridge",
+    "win": {
+      "target": ["dir", "portable"],
+      "icon": "assets/icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      ".env.default"
+    ],
+    "extraResources": [
+      {
+        "from": ".env.default",
+        "to": ".env.default"
+      }
+    ],
+    "asar": false
   }
 }
